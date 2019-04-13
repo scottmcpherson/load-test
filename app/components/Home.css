@@ -1,0 +1,18 @@
+.leftColumn {
+  background-color: #f5f5f5;
+}
+
+.rightColumn {
+  background-color: #fafafa;
+}
+
+.resultsColumn {
+  height: 100vh;
+  background-color: #fff;
+}
+
+.listItem {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
