@@ -1,13 +1,13 @@
 <div align="center">
 <br>
-<img src="https://user-images.githubusercontent.com/12294525/44203609-77d50800-a147-11e8-98f0-f2403527abdc.png" width="600px" />
+<img src="https://user-images.githubusercontent.com/2382172/56094995-e49ece80-5e9d-11e9-8386-2fb8337804b1.png" width="600px" />
 
 </div>
 
 <br>
 
 <p align="center">
-A boilerplate for Scalable Cross-Platform Desktop Apps based on  <a href="http://electron.atom.io/">Electron</a>, <a href="https://facebook.github.io/react/">React</a>, <a href="https://github.com/reactjs/redux">Redux</a>, <a href="https://github.com/reactjs/react-router">React Router</a>, <a href="http://webpack.github.io/docs/">Webpack</a> and <a href="https://github.com/gaearon/react-hot-loader">React Hot Loader</a> for rapid application development (HMR).
+A simplet API load test tool.
 </p>
 
 <div align="center">
