@@ -22,6 +22,8 @@ const ListItem = ({ req, handleRequestSelect, handleDelete }) => (
       {req.method} {req.url}
     </div>
     <a
+      role="button"
+      tabIndex={0}
       className={`tag is-delete ${styles.delete}`}
       onClick={() => handleDelete(req.key)}
     />
@@ -128,7 +130,7 @@ export default class Home extends Component {
         <div
           className={`column is-one-third is-fullheight ${styles.leftColumn}`}
         >
-          <div className={`column`}>
+          <div className="column">
             <div className="field">
               <p className="control has-icons-left">
                 <input
@@ -209,9 +211,9 @@ export default class Home extends Component {
             {statusResults.map(status => (
               <div className="column">
                 {status.statusCode === STATUS_200 ? (
-                  <span class="tag is-success">{status.statusCode}</span>
+                  <span className="tag is-success">{status.statusCode}</span>
                 ) : (
-                  <span class="tag is-danger">{status.statusCode}</span>
+                  <span className="tag is-danger">{status.statusCode}</span>
                 )}
                 {`  Mean Latency: ${status.meanLatencyMs}ms  `}
                 {status.path}
