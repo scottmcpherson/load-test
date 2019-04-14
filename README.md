@@ -16,12 +16,12 @@ A simple way to perform API load tests.
 <br>
 
 
-## Install for production use
+## Download here
 
 The latest release download for mac can be found here:
 https://github.com/scottmcpherson/load-test/releases
 
-## Install for local development
+## Or install for local development
 
 First, clone the repo via git:
 The latest downloads for mac can be found here:
