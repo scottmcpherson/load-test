@@ -1,7 +1,7 @@
 <div align="center">
   <h1>Simple Load Test</h1>
 <br>
-<img src="https://user-images.githubusercontent.com/2382172/56094995-e49ece80-5e9d-11e9-8386-2fb8337804b1.png" width="600px" />
+<img src="https://user-images.githubusercontent.com/2382172/56094995-e49ece80-5e9d-11e9-8386-2fb8337804b1.png" />
 
 </div>
 
