@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import styles from './Styles.css';
 
 export default class Options extends Component {
   render() {
@@ -10,7 +11,7 @@ export default class Options extends Component {
           <div className="field-label is-normal">
             <label className="label">Max Requests</label>
           </div>
-          <div className="field-body">
+          <div className={`field-body ${styles.fieldBody}`}>
             <div className="field">
               <p className="control is-expanded">
                 <input
@@ -30,7 +31,7 @@ export default class Options extends Component {
           <div className="field-label is-normal">
             <label className="label">Concurrency</label>
           </div>
-          <div className="field-body">
+          <div className={`field-body ${styles.fieldBody}`}>
             <div className="field">
               <p className="control is-expanded">
                 <input
@@ -50,7 +51,7 @@ export default class Options extends Component {
           <div className="field-label is-normal">
             <label className="label">Requests Per Sec</label>
           </div>
-          <div className="field-body">
+          <div className={`field-body ${styles.fieldBody}`}>
             <div className="field">
               <p className="control is-expanded">
                 <input

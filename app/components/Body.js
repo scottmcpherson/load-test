@@ -8,15 +8,21 @@ const placeholder = `{
 }`;
 
 export default class Body extends Component {
-  state = { code: placeholder };
+  handleChange = newCode => {
+    const { handleOptionsChange } = this.props;
+    handleOptionsChange('body', newCode);
+  };
 
   render() {
-    const { code } = this.state;
+    const {
+      options: { body = placeholder }
+    } = this.props;
+
     return (
       <div className="column">
         <Editor
-          value={code}
-          onValueChange={newCode => this.setState({ code: newCode })}
+          value={body}
+          onValueChange={this.handleChange}
           highlight={newCode => highlight(newCode, languages.json)}
           padding={10}
           style={{

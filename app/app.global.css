@@ -15,12 +15,12 @@ body {
   background-color: #fff;
   font-family: Arial, Helvetica, Helvetica Neue, serif;
   overflow-y: hidden;
+  -ms-overflow-style: scrollbar;
+  -webkit-app-region: drag;
 }
 
 #root {
   height: 100%;
-  /* overflow-x: hidden;
-  overflow-y: hidden; */
 }
 
 h2 {

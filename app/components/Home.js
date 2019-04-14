@@ -1,89 +1,103 @@
 import React, { Component } from 'react';
 import loadtest from 'loadtest';
 import Tabs from './Tabs';
-import styles from './Home.css';
+import styles from './Styles.css';
 import RequestStore from '../utils/requestStore';
-
-const GET = 'GET';
-const POST = 'POST';
-const STATUS_200 = 200;
-const httpMethods = [{ value: GET }, { value: POST }];
-
-const HTTPMethod = ({ value }) => <option value={value}>{value}</option>;
-const ListItem = ({ req, handleRequestSelect, handleDelete }) => (
-  <div className={styles.listItemWrapper}>
-    <div
-      role="button"
-      tabIndex={0}
-      title={req.url}
-      className={styles.listItem}
-      onClick={() => handleRequestSelect(req.key)}
-    >
-      {req.method} {req.url}
-    </div>
-    <a
-      role="button"
-      tabIndex={0}
-      className={`tag is-delete ${styles.delete}`}
-      onClick={() => handleDelete(req.key)}
-    />
-  </div>
-);
+import SuccessResponse from './SuccessResponse';
+import ErrorResponse from './ErrorResponse';
+import ListItem from './ListItem';
+import { GET, STATUS_200 } from '../constants';
+import { httpMethods } from '../constants/data';
 
 export default class Home extends Component {
   constructor(props) {
     super(props);
-
     this.httpRequestStore = new RequestStore();
+    const httpRequests = this.httpRequestStore.getAll();
+    const defaultOptions = {
+      url: '',
+      cookies: [],
+      method: GET,
+      maxRequests: 10,
+      concurrency: 1,
+      requestsPerSecond: 1,
+      body: {},
+      headers: {}
+    };
+    const isOptions = Array.isArray(httpRequests) && httpRequests.length;
+    const options = isOptions ? httpRequests[0] : defaultOptions;
     this.state = {
       searchTerm: '',
       httpRequests: this.httpRequestStore.getAll(),
+      successResponse: null,
+      errorResponse: null,
       statusResults: [],
-      options: {
-        url: '',
-        cookies: [],
-        method: GET,
-        maxRequests: 10,
-        concurrency: 1,
-        requestsPerSecond: 1
-      }
+      options
     };
   }
 
-  getOptions = () => {};
-
   statusCallback = (error, result, latency) => {
     const { path, statusCode, requestIndex } = result;
-    const { meanLatencyMs } = latency;
+    const { meanLatencyMs, rps } = latency;
     const status = {
+      rps,
       path,
       statusCode,
       meanLatencyMs,
       index: requestIndex
     };
     this.setState(state => ({
-      statusResults: [...state.statusResults, status]
+      statusResults: [status, ...state.statusResults]
     }));
   };
 
+  canParseJsonString = str => {
+    try {
+      JSON.parse(str);
+    } catch (e) {
+      return false;
+    }
+    return true;
+  };
+
   handleLoadTest = () => {
-    const { options } = this.state;
+    let { options } = this.state;
+    const { body } = options;
     const { method, url } = options;
     const key = `${method}-${url}`;
     const results = this.httpRequestStore.set(key, options);
-
-    this.setState({ httpRequests: results, statusResults: [] }, () => {
-      const reqOptions = {
+    if (this.canParseJsonString(body)) {
+      options = {
         ...options,
-        statusCallback: this.statusCallback
+        body: JSON.parse(body)
       };
-      loadtest.loadTest(reqOptions, (error, result) => {
-        if (error) {
-          return console.error('Got an error: %s', error);
-        }
-        console.log('Tests run successfully: ', result);
-      });
-    });
+    }
+
+    this.setState(
+      {
+        httpRequests: results,
+        statusResults: [],
+        errorResponse: null,
+        successResponse: null
+      },
+      () => {
+        const reqOptions = {
+          ...options,
+          statusCallback: this.statusCallback
+        };
+        loadtest.loadTest(reqOptions, (error, result) => {
+          const errors = Object.keys(result.errorCodes).map(k => ({
+            statusCode: k,
+            occurances: result.errorCodes[k]
+          }));
+          if (errors.length) {
+            this.setState({ errorResponse: errors, successResponse: result });
+          } else {
+            this.setState({ successResponse: result });
+          }
+        });
+      }
+    );
   };
 
   requestExists = key => {
@@ -104,6 +118,18 @@ export default class Home extends Component {
     this.setState(state => ({ options: { ...state.options, [key]: value } }));
   };
 
+  handleHeadersChange = (key, value) => {
+    this.setState(state => ({
+      options: {
+        ...state.options,
+        headers: {
+          ...state.options.headers,
+          [key]: value
+        }
+      }
+    }));
+  };
+
   filterHTTPRequests = (searchTerm, requests) => {
     if (!searchTerm) return requests;
     const filter = searchTerm.toUpperCase();
@@ -117,11 +143,24 @@ export default class Home extends Component {
   handleRequestSelect = key => {
     const { httpRequests } = this.state;
     const options = httpRequests.find(req => req.key === key);
-    this.setState({ options });
+    this.setState({
+      options,
+      statusResults: [],
+      errorResponse: null,
+      successResponse: null
+    });
   };
 
   render() {
-    const { options, searchTerm, statusResults, httpRequests } = this.state;
+    const {
+      options,
+      searchTerm,
+      statusResults,
+      httpRequests,
+      successResponse,
+      errorResponse
+    } = this.state;
+
     const { url, method } = options;
     const data = this.filterHTTPRequests(searchTerm, httpRequests);
 
@@ -150,6 +189,7 @@ export default class Home extends Component {
               <ListItem
                 key={req.key}
                 req={req}
+                options={options}
                 handleRequestSelect={this.handleRequestSelect}
                 handleDelete={this.handleDelete}
               />
@@ -157,7 +197,11 @@ export default class Home extends Component {
           </div>
         </div>
         <div className={`column ${styles.rightColumn}`}>
-          <div className={`column ${styles.rightHeaderColumn}`}>
+          <div
+            className={`column ${styles.rightHeaderColumn} ${
+              styles.rightHeaderColumnFirst
+            }`}
+          >
             <div className="field has-addons">
               <p className="control">
                 <span className="select">
@@ -169,10 +213,9 @@ export default class Home extends Component {
                     }}
                   >
                     {httpMethods.map(httpMethod => (
-                      <HTTPMethod
-                        key={httpMethod.value}
-                        value={httpMethod.value}
-                      />
+                      <option key={httpMethod.value} value={httpMethod.value}>
+                        {httpMethod.value}
+                      </option>
                     ))}
                   </select>
                 </span>
@@ -193,7 +236,7 @@ export default class Home extends Component {
                 <a
                   role="link"
                   tabIndex="0"
-                  className="button is-info"
+                  className="button is-link"
                   onClick={this.handleLoadTest}
                 >
                   Begin Load Test
@@ -204,18 +247,30 @@ export default class Home extends Component {
           <div className={`column ${styles.rightHeaderColumn}`}>
             <Tabs
               options={options}
+              handleHeadersChange={this.handleHeadersChange}
               handleOptionsChange={this.handleOptionsChange}
             />
           </div>
           <div className={`column ${styles.resultsColumn}`}>
+            {successResponse && (
+              <SuccessResponse successResponse={successResponse} />
+            )}
+            {errorResponse && (
+              <ErrorResponse
+                errorResponse={errorResponse}
+                successResponse={successResponse}
+              />
+            )}
             {statusResults.map(status => (
-              <div className="column">
+              <div key={status.index} className={`column ${styles.listItem}`}>
                 {status.statusCode === STATUS_200 ? (
                   <span className="tag is-success">{status.statusCode}</span>
                 ) : (
                   <span className="tag is-danger">{status.statusCode}</span>
                 )}
-                {`  Mean Latency: ${status.meanLatencyMs}ms  `}
+                {` Requests per second: ${status.rps},  mean Latency: ${
+                  status.meanLatencyMs
+                } ms,  `}
                 {status.path}
               </div>
             ))}
