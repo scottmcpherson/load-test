@@ -16,20 +16,11 @@ A simplet API load test tool.
 <br>
 
 
-## Install for local development
+## Install for production use
 
-First, clone the repo via git:
+The latest downloads for mac can be found here:
+https://github.com/scottmcpherson/load-test/releases
 
-```bash
-git clone --depth 1 --single-branch --branch master https://github.com/scottmcpherson/load-test.git your-project-name
-```
-
-And then install the dependencies with yarn.
-
-```bash
-$ cd your-project-name
-$ yarn
-```
 
 ## Run for local development
 
