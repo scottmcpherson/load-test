@@ -8,7 +8,7 @@
 <br>
 
 <p align="center">
-A simplet way to performance load test APIs. 
+A simplet way to perform API load tests. 
 </p>
 
 
