@@ -4,34 +4,27 @@ import Tabs from './Tabs';
 import styles from './Home.css';
 import RequestStore from '../utils/requestStore';
 
-function statusCallback(error, result, latency) {
-  console.log(
-    'Current latency %j, result %j, error %j',
-    latency,
-    result,
-    error
-  );
-  console.log('----');
-  console.log('Request elapsed milliseconds: ', result.requestElapsed);
-  console.log('Request index: ', result.requestIndex);
-  console.log('Request loadtest() instance index: ', result.instanceIndex);
-}
-
 const GET = 'GET';
 const POST = 'POST';
-
+const STATUS_200 = 200;
 const httpMethods = [{ value: GET }, { value: POST }];
 
 const HTTPMethod = ({ value }) => <option value={value}>{value}</option>;
-const ListItem = ({ req, handleRequestSelect }) => (
-  <div
-    role="button"
-    tabIndex={0}
-    title={req.url}
-    className={styles.listItem}
-    onClick={() => handleRequestSelect(req.key)}
-  >
-    {req.method} {req.url}
+const ListItem = ({ req, handleRequestSelect, handleDelete }) => (
+  <div className={styles.listItemWrapper}>
+    <div
+      role="button"
+      tabIndex={0}
+      title={req.url}
+      className={styles.listItem}
+      onClick={() => handleRequestSelect(req.key)}
+    >
+      {req.method} {req.url}
+    </div>
+    <a
+      className={`tag is-delete ${styles.delete}`}
+      onClick={() => handleDelete(req.key)}
+    />
   </div>
 );
 
@@ -43,16 +36,33 @@ export default class Home extends Component {
     this.state = {
       searchTerm: '',
       httpRequests: this.httpRequestStore.getAll(),
+      statusResults: [],
       options: {
         url: '',
         cookies: [],
         method: GET,
-        maxRequests: 10
+        maxRequests: 10,
+        concurrency: 1,
+        requestsPerSecond: 1
       }
     };
   }
 
   getOptions = () => {};
+
+  statusCallback = (error, result, latency) => {
+    const { path, statusCode, requestIndex } = result;
+    const { meanLatencyMs } = latency;
+    const status = {
+      path,
+      statusCode,
+      meanLatencyMs,
+      index: requestIndex
+    };
+    this.setState(state => ({
+      statusResults: [...state.statusResults, status]
+    }));
+  };
 
   handleLoadTest = () => {
     const { options } = this.state;
@@ -60,10 +70,10 @@ export default class Home extends Component {
     const key = `${method}-${url}`;
     const results = this.httpRequestStore.set(key, options);
 
-    this.setState({ httpRequests: results }, () => {
+    this.setState({ httpRequests: results, statusResults: [] }, () => {
       const reqOptions = {
         ...options,
-        statusCallback
+        statusCallback: this.statusCallback
       };
       loadtest.loadTest(reqOptions, (error, result) => {
         if (error) {
@@ -109,7 +119,7 @@ export default class Home extends Component {
   };
 
   render() {
-    const { options, searchTerm, httpRequests } = this.state;
+    const { options, searchTerm, statusResults, httpRequests } = this.state;
     const { url, method } = options;
     const data = this.filterHTTPRequests(searchTerm, httpRequests);
 
@@ -118,7 +128,7 @@ export default class Home extends Component {
         <div
           className={`column is-one-third is-fullheight ${styles.leftColumn}`}
         >
-          <div className="column">
+          <div className={`column`}>
             <div className="field">
               <p className="control has-icons-left">
                 <input
@@ -145,7 +155,7 @@ export default class Home extends Component {
           </div>
         </div>
         <div className={`column ${styles.rightColumn}`}>
-          <div className="column">
+          <div className={`column ${styles.rightHeaderColumn}`}>
             <div className="field has-addons">
               <p className="control">
                 <span className="select">
@@ -189,14 +199,24 @@ export default class Home extends Component {
               </p>
             </div>
           </div>
-          <div className="column">
+          <div className={`column ${styles.rightHeaderColumn}`}>
             <Tabs
               options={options}
               handleOptionsChange={this.handleOptionsChange}
             />
           </div>
           <div className={`column ${styles.resultsColumn}`}>
-            <a className="button">Results</a>
+            {statusResults.map(status => (
+              <div className="column">
+                {status.statusCode === STATUS_200 ? (
+                  <span class="tag is-success">{status.statusCode}</span>
+                ) : (
+                  <span class="tag is-danger">{status.statusCode}</span>
+                )}
+                {`  Mean Latency: ${status.meanLatencyMs}ms  `}
+                {status.path}
+              </div>
+            ))}
           </div>
         </div>
       </div>

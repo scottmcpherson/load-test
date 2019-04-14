@@ -4,9 +4,13 @@
  */
 @import '~@fortawesome/fontawesome-free/css/all.css';
 
+html {
+  height: 100vh;
+}
+
 body {
   position: relative;
-  height: 100vh;
+  height: 100%;
   overflow-x: hidden;
   background-color: #fff;
   font-family: Arial, Helvetica, Helvetica Neue, serif;
@@ -14,8 +18,9 @@ body {
 }
 
 #root {
-  overflow-x: hidden;
-  overflow-y: hidden;
+  height: 100%;
+  /* overflow-x: hidden;
+  overflow-y: hidden; */
 }
 
 h2 {
@@ -48,6 +53,5 @@ a:hover {
 
 .is-fullheight.columns {
   margin-top: 0;
-
-  /* height: 100vh; */
+  height: 100vh;
 }

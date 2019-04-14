@@ -1,13 +1,23 @@
 .leftColumn {
+  height: 100%;
+  padding-right: 0;
   background-color: #f5f5f5;
 }
 
 .rightColumn {
+  height: 100%;
+  padding-left: 0;
+  overflow-y: scroll;
+  background-color: #fff;
+}
+
+.rightHeaderColumn {
   background-color: #fafafa;
 }
 
 .resultsColumn {
-  height: 100vh;
+  min-height: min-content;
+  padding-bottom: 1rem;
   background-color: #fff;
 }
 
@@ -15,4 +25,20 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.listItemWrapper {
+  position: relative;
+}
+
+.delete {
+  top: 0;
+  right: 0;
+  display: none;
+  visibility: hidden;
+  position: absolute !important;
+}
+
+.listItemWrapper:hover .delete {
+  visibility: visible;
 }

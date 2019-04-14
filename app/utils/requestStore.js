@@ -32,7 +32,7 @@ export default class RequestStore {
 
   // ...and this will set it
   set(key, val) {
-    this.data[key] = { ...val, createdOn: new Date() };
+    this.data[key] = { ...val, key, createdOn: new Date() };
     // Wait, I thought using the node.js' synchronous APIs was bad form?
     // We're not writing a server so there's not nearly the same IO demand on the process
     // Also if we used an async API and our app was quit before the asynchronous write had a chance to complete,
