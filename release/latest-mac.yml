@@ -1,0 +1,12 @@
+version: 0.10.0
+files:
+  - url: LoadTest-0.10.0-mac.zip
+    sha512: uDp0sCyajoNSdN1Yc38rUrPrKGjmC3j5gYEkS0BpWbNVLy3yOX6LPu9okukM5Js8QZCf5SulbVOvIz99qZ/13Q==
+    size: 63246188
+    blockMapSize: 67674
+  - url: LoadTest-0.10.0.dmg
+    sha512: RmSuwWO22ZulTrinv3WDNO7Qzmk6MHhWeZ1Ge/MhPmkiYA5QZrP7jQKSoW7VXJb399YoFRMeQW17oeut+WctAg==
+    size: 65503302
+path: LoadTest-0.10.0-mac.zip
+sha512: uDp0sCyajoNSdN1Yc38rUrPrKGjmC3j5gYEkS0BpWbNVLy3yOX6LPu9okukM5Js8QZCf5SulbVOvIz99qZ/13Q==
+releaseDate: '2019-04-14T15:32:02.712Z'
