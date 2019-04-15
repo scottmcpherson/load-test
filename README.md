@@ -1,14 +1,14 @@
 <div align="center">
   <h1>Simple Load Test</h1>
 <br>
-<img src="https://user-images.githubusercontent.com/2382172/56094995-e49ece80-5e9d-11e9-8386-2fb8337804b1.png" width="600px" />
+<img src="https://user-images.githubusercontent.com/2382172/56094995-e49ece80-5e9d-11e9-8386-2fb8337804b1.png" />
 
 </div>
 
 <br>
 
 <p align="center">
-A simplet API load test tool.
+A simple way to perform API load tests. 
 </p>
 
 
@@ -16,11 +16,27 @@ A simplet API load test tool.
 <br>
 
 
-## Install for production use
+## Download here
 
+The latest release download for mac can be found here:
+https://github.com/scottmcpherson/load-test/releases
+
+## Or install for local development
+
+First, clone the repo via git:
 The latest downloads for mac can be found here:
 https://github.com/scottmcpherson/load-test/releases
 
+```bash
+git clone --depth 1 --single-branch --branch master https://github.com/scottmcpherson/load-test.git your-project-name
+```
+
+And then install the dependencies with yarn.
+
+```bash
+$ cd your-project-name
+$ yarn
+```
 
 ## Run for local development
 
