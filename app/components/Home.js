@@ -2,18 +2,20 @@ import React, { Component } from 'react';
 import loadtest from 'loadtest';
 import Tabs from './Tabs';
 import styles from './Styles.css';
-import RequestStore from '../utils/requestStore';
-import SuccessResponse from './SuccessResponse';
+import APIRequestStore from '../utils/APIRequestStore';
+import APIRequestResultStore from '../utils/APIRequestResultStore';
+import APIRequestResult from './APIRequestResult';
 import ErrorResponse from './ErrorResponse';
 import ListItem from './ListItem';
-import { GET, STATUS_200 } from '../constants';
+import { GET } from '../constants';
 import { httpMethods } from '../constants/data';
 
 export default class Home extends Component {
   constructor(props) {
     super(props);
-    this.httpRequestStore = new RequestStore();
-    const httpRequests = this.httpRequestStore.getAll();
+    this.apiRequestStore = new APIRequestStore();
+    this.apiRequestResultStore = new APIRequestResultStore();
+    const apiRequests = this.apiRequestStore.getAll();
     const defaultOptions = {
       url: '',
       cookies: [],
@@ -21,30 +23,33 @@ export default class Home extends Component {
       maxRequests: 10,
       concurrency: 1,
       requestsPerSecond: 1,
-      body: {},
       headers: {}
     };
-    const isOptions = Array.isArray(httpRequests) && httpRequests.length;
-    const options = isOptions ? httpRequests[0] : defaultOptions;
+    const isOptions = Array.isArray(apiRequests) && apiRequests.length;
+    const options = isOptions ? apiRequests[0] : defaultOptions;
+    const apiRequestResult = isOptions
+      ? this.apiRequestResultStore.getLatest(options.key)
+      : null;
     this.state = {
       searchTerm: '',
-      httpRequests: this.httpRequestStore.getAll(),
-      successResponse: null,
-      errorResponse: null,
+      apiRequests: this.apiRequestStore.getAll(),
+      apiRequestResult,
       statusResults: [],
       options
     };
   }
 
   statusCallback = (error, result, latency) => {
+    const { isFetchingKey } = this.state;
     const { path, statusCode, requestIndex } = result;
     const { meanLatencyMs, rps } = latency;
     const status = {
       rps,
       path,
-      statusCode,
       meanLatencyMs,
-      index: requestIndex
+      key: isFetchingKey,
+      index: requestIndex,
+      statusCode: statusCode.toString()
     };
     this.setState(state => ({
       statusResults: [status, ...state.statusResults]
@@ -65,7 +70,8 @@ export default class Home extends Component {
     const { body } = options;
     const { method, url } = options;
     const key = `${method}-${url}`;
-    const results = this.httpRequestStore.set(key, options);
+    const results = this.apiRequestStore.set(key, options);
+    const selectedOptions = this.apiRequestStore.get(key);
     if (this.canParseJsonString(body)) {
       options = {
         ...options,
@@ -75,10 +81,11 @@ export default class Home extends Component {
 
     this.setState(
       {
-        httpRequests: results,
+        options: selectedOptions,
+        isFetchingKey: key,
         statusResults: [],
-        errorResponse: null,
-        successResponse: null
+        apiRequestResult: null,
+        apiRequests: results
       },
       () => {
         const reqOptions = {
@@ -86,28 +93,32 @@ export default class Home extends Component {
           statusCallback: this.statusCallback
         };
         loadtest.loadTest(reqOptions, (error, result) => {
-          const errors = Object.keys(result.errorCodes).map(k => ({
+          const errors = Object.keys(result.errorCodes).map((k, i) => ({
+            index: i,
             statusCode: k,
             occurances: result.errorCodes[k]
           }));
-          if (errors.length) {
-            this.setState({ errorResponse: errors, successResponse: result });
-          } else {
-            this.setState({ successResponse: result });
-          }
+
+          const data = {
+            ...result,
+            errors
+          };
+
+          const apiRequestResult = this.apiRequestResultStore.set(key, data);
+          this.setState({ apiRequestResult, isFetchingKey: null });
         });
       }
     );
   };
 
   requestExists = key => {
-    const { httpRequests } = this.state;
-    return !!httpRequests.find(req => req.key === key);
+    const { apiRequests } = this.state;
+    return !!apiRequests.find(req => req.key === key);
   };
 
   handleDelete = key => {
-    const results = this.httpRequestStore.remove(key);
-    this.setState({ httpRequests: results });
+    const results = this.apiRequestStore.remove(key);
+    this.setState({ apiRequests: results });
   };
 
   handleSearch = e => {
@@ -130,7 +141,7 @@ export default class Home extends Component {
     }));
   };
 
-  filterHTTPRequests = (searchTerm, requests) => {
+  filterAPIRequests = (searchTerm, requests) => {
     if (!searchTerm) return requests;
     const filter = searchTerm.toUpperCase();
     return requests.filter(
@@ -141,13 +152,12 @@ export default class Home extends Component {
   };
 
   handleRequestSelect = key => {
-    const { httpRequests } = this.state;
-    const options = httpRequests.find(req => req.key === key);
+    const { apiRequests } = this.state;
+    const options = apiRequests.find(req => req.key === key);
+    const apiRequestResult = this.apiRequestResultStore.getLatest(key);
     this.setState({
       options,
-      statusResults: [],
-      errorResponse: null,
-      successResponse: null
+      apiRequestResult
     });
   };
 
@@ -156,13 +166,22 @@ export default class Home extends Component {
       options,
       searchTerm,
       statusResults,
-      httpRequests,
-      successResponse,
-      errorResponse
+      isFetchingKey,
+      apiRequests,
+      apiRequestResult
     } = this.state;
-
+    const optionsKey = options && options.key;
+    const statusResultsFiltered = statusResults.filter(
+      res => res.key === optionsKey
+    );
+    const hasStatusResults = !!(
+      Array.isArray(statusResultsFiltered) && statusResultsFiltered.length
+    );
+    const apiRequestResultKey = apiRequestResult && apiRequestResult.key;
+    const errors = apiRequestResult && apiRequestResult.errors;
+    const hasErrors = !!(Array.isArray(errors) && errors.length);
     const { url, method } = options;
-    const data = this.filterHTTPRequests(searchTerm, httpRequests);
+    const data = this.filterAPIRequests(searchTerm, apiRequests);
 
     return (
       <div className="columns is-fullheight">
@@ -252,28 +271,27 @@ export default class Home extends Component {
             />
           </div>
           <div className={`column ${styles.resultsColumn}`}>
-            {successResponse && (
-              <SuccessResponse successResponse={successResponse} />
+            {optionsKey === apiRequestResultKey &&
+              isFetchingKey !== apiRequestResultKey && (
+                <APIRequestResult apiRequestResult={apiRequestResult} />
+              )}
+            {optionsKey === apiRequestResultKey && hasErrors && (
+              <ErrorResponse apiRequestResult={apiRequestResult} />
             )}
-            {errorResponse && (
-              <ErrorResponse
-                errorResponse={errorResponse}
-                successResponse={successResponse}
-              />
-            )}
-            {statusResults.map(status => (
-              <div key={status.index} className={`column ${styles.listItem}`}>
-                {status.statusCode === STATUS_200 ? (
-                  <span className="tag is-success">{status.statusCode}</span>
-                ) : (
-                  <span className="tag is-danger">{status.statusCode}</span>
-                )}
-                {` Requests per second: ${status.rps},  mean Latency: ${
-                  status.meanLatencyMs
-                } ms,  `}
-                {status.path}
-              </div>
-            ))}
+            {hasStatusResults &&
+              statusResultsFiltered.map(status => (
+                <div key={status.index} className={`column ${styles.listItem}`}>
+                  {status.statusCode.startsWith('2') ? (
+                    <span className="tag is-success">{status.statusCode}</span>
+                  ) : (
+                    <span className="tag is-danger">{status.statusCode}</span>
+                  )}
+                  {` Requests per second: ${status.rps},  mean Latency: ${
+                    status.meanLatencyMs
+                  } ms,  `}
+                  {status.path}
+                </div>
+              ))}
           </div>
         </div>
       </div>

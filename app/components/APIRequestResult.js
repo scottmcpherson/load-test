@@ -1,14 +1,16 @@
 import React from 'react';
 import styles from './Styles.css';
 
-const SuccessResponse = ({ successResponse }) => {
+const APIRequestResult = ({ apiRequestResult }) => {
   const {
     rps,
+    minLatencyMs,
     maxLatencyMs,
+    meanLatencyMs,
     percentiles,
     totalRequests,
     totalTimeSeconds
-  } = successResponse;
+  } = apiRequestResult;
   const fiftey = percentiles && percentiles['50'];
   const nintey = percentiles && percentiles['90'];
   const ninteyFive = percentiles && percentiles['95'];
@@ -19,7 +21,26 @@ const SuccessResponse = ({ successResponse }) => {
       <h4 className="title is-4">Summary</h4>
       <div className={`columns ${styles.dataColumns}`}>
         <div className={`column ${styles.summaryLabelColumn}`}>
-          Completed requests:
+          Min Latency:
+        </div>
+        <div className={`column`}>{minLatencyMs} ms</div>
+      </div>
+      <div className={`columns ${styles.dataColumns}`}>
+        <div className={`column ${styles.summaryLabelColumn}`}>
+          Max Latency:
+        </div>
+        <div className={`column`}>{maxLatencyMs} ms</div>
+      </div>
+      <div className={`columns ${styles.dataColumns}`}>
+        <div className={`column ${styles.summaryLabelColumn}`}>
+          Mean Latency:
+        </div>
+        <div className={`column`}>{meanLatencyMs} ms</div>
+      </div>
+      <br />
+      <div className={`columns ${styles.dataColumns}`}>
+        <div className={`column ${styles.summaryLabelColumn}`}>
+          Total requests:
         </div>
         <div className={`column`}>{totalRequests}</div>
       </div>
@@ -62,4 +83,4 @@ const SuccessResponse = ({ successResponse }) => {
   );
 };
 
-export default SuccessResponse;
+export default APIRequestResult;

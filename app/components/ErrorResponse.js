@@ -1,13 +1,13 @@
 import React from 'react';
 import styles from './Styles.css';
 
-const ErrorResponse = ({ errorResponse, successResponse }) => {
-  const { totalErrors } = successResponse;
+const ErrorResponse = ({ apiRequestResult }) => {
+  const { totalErrors, errors } = apiRequestResult;
   return (
     <div>
       <h4 className="title is-4">Errors</h4>
-      {errorResponse.map(error => (
-        <div className={`columns ${styles.dataColumns}`}>
+      {errors.map(error => (
+        <div key={error.index} className={`columns ${styles.dataColumns}`}>
           <div className={`column ${styles.errorLabelColumn}`}>
             Status {error.statusCode}:{' '}
           </div>

@@ -263,6 +263,7 @@
     "electron-updater": "^4.0.0",
     "history": "^4.7.2",
     "loadtest": "^3.0.7",
+    "lodash": "^4.17.11",
     "prismjs": "^1.16.0",
     "react": "^16.6.3",
     "react-bulma-components": "^2.3.0",
