@@ -18,7 +18,7 @@ A simple way to perform API load tests.
 
 ## Download here
 
-The latest release download for mac can be found here:
+The latest release for mac can be found here:
 https://github.com/scottmcpherson/load-test/releases
 
 ## Or install for local development
